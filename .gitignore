@@ -39,3 +39,4 @@ htmlcov/
 
 # Scaffolding tests output
 test-scaffold-output*/
+.claude/settings.local.json
