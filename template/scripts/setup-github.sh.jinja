@@ -3,6 +3,12 @@ set -euo pipefail
 
 REPO="${1:-$(gh repo view --json nameWithOwner -q .nameWithOwner)}"
 
+# Validate repo format (owner/name)
+if [[ ! "$REPO" =~ ^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$ ]]; then
+    echo "ERROR: Invalid repo format '$REPO'. Expected 'owner/name'." >&2
+    exit 1
+fi
+
 echo "==> Setting up GitHub repository labels for Agentic Workflow in $REPO..."
 
 # Orchestration Labels

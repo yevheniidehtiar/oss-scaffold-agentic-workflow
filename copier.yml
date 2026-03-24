@@ -75,7 +75,7 @@ go_version:
 
 node_version:
   type: str
-  help: "Bun version (e.g. 1.2)"
+  help: "Node/Bun version (e.g. 1.2 for Bun, 22 for Node)"
   default: "1.2"
   when: "{{ language in ['typescript', 'polyglot'] }}"
 

@@ -4,6 +4,13 @@ set -euo pipefail
 
 # Get repository context
 REPO="${1:-$(gh repo view --json nameWithOwner -q .nameWithOwner)}"
+
+# Validate repo format (owner/name)
+if [[ ! "$REPO" =~ ^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$ ]]; then
+    echo "ERROR: Invalid repo format '$REPO'. Expected 'owner/name'." >&2
+    exit 1
+fi
+
 OWNER=$(echo "$REPO" | cut -d'/' -f1)
 NAME=$(echo "$REPO" | cut -d'/' -f2)
 
@@ -32,20 +39,13 @@ gh repo edit "$REPO" \
 
 # 2. Create/Update Branch Protection Ruleset
 echo "--> Applying 'Branch Protection' ruleset to main and develop..."
-RULESET_ID=$(gh api "/repos/$REPO/rulesets" -q '.[] | select(.name=="Branch Protection") | .id')
+RULESET_ID=$(gh api "/repos/$REPO/rulesets" -q '.[] | select(.name=="Branch Protection") | .id' | head -1)
 
 RULESET_PAYLOAD=$(cat <<EOF
 {
   "name": "Branch Protection",
   "target": "branch",
   "enforcement": "active",
-  "bypass_actors": [
-    {
-      "actor_id": 5,
-      "actor_type": "RepositoryRole",
-      "bypass_mode": "pull_request"
-    }
-  ],
   "conditions": {
     "ref_name": {
       "include": ["refs/heads/main", "refs/heads/develop"],
@@ -98,5 +98,5 @@ echo " - Push Protection: ENABLED"
 echo " - Force Pushes: BLOCKED on main/develop"
 echo " - Deletions: BLOCKED on main/develop"
 echo " - Signed Commits: REQUIRED on main/develop"
-echo " - PR Review: REQUIRED (min 1 approval)"
+echo " - PR Review: REQUIRED (min 1 approval, last-push approval enforced)"
 echo " - Status Checks: REQUIRED ('Scaffolding Tests')"
